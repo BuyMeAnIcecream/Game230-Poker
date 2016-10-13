@@ -1,5 +1,5 @@
 
-#include "Deck.cpp"
+#include <Deck.h>
 class Player {
 public:
 	int money;
