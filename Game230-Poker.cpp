@@ -5,32 +5,52 @@
 #include <string>
 #include <stddef.h>
 #include <iostream>
-using namespace std;
+using namespace std; 
 
 
-class Deck {
 
-public:
-	static CardList* createCardList() {
-		CardList* cl = new CardList;
-		cl->head = NULL;
-		return cl;
+static string validateInput() {
+	string inp;
+	for (;;) {
+		if (inp == "a" || inp == "b" || inp == "c" || inp == "d" || inp == "e" ||
+			inp == "deck" || inp == "exit" || inp == "swap" || inp == "none" || inp == "deck" || inp == "all") {
+			return inp;
+		}
 	}
-	//MOVE THIS SHIT TO CARDLIST!! IT'S HIS FUNCTIONALITY!!!! leave here only deck of 52 and so do with player, but 5 items only. and work, you retard, please.
-	void addFirst(CardList* cl, int v, int s) {
+}
+struct Card
+{
+public:
+	int value;
+	int suit;
+	Card* next;
+};
+class CardList {
+public:
+	Card* head;
+	int size;
+	CardList() {
+		head = NULL;
+		size = 0;
+	}
+	~CardList() {
+		//TODO
+	}
+	void addFirst(int v, int s) {
 		Card* c = new Card;
 		c->value = v;
 		c->suit = s;
-		c->next = cl->head;
-		cl->head = c;
+		c->next = this->head;
+		this->head = c;
+		size++;
 	}
 
-	void addLast(CardList* cl, int v, int s) {
-		if (cl->head == NULL) {
-			addFirst(cl, v, s);
+	void addLast(int v, int s) {
+		if (this->head == NULL) {
+			addFirst(v, s);
 			return;
 		}
-		Card* last = cl->head;
+		Card* last = this->head;
 		while (last->next != NULL)
 			last = last->next;
 
@@ -39,10 +59,11 @@ public:
 		c->value = v;
 		c->next = NULL;
 		last->next = c;
+		size++;
 	}
 
-	Card* getItem(CardList* cl, int index) {
-		Card* c = cl->head;
+	Card* getItem(int index) {
+		Card* c = this->head;
 		while (index > 0) {
 			c = c->next;
 			--index;
@@ -51,20 +72,21 @@ public:
 	}
 
 	//TODO
-	void removeFirst(CardList* cl) {
-		if (cl->head == NULL) 
+	void removeFirst() {
+		if (this->head == NULL)
 			return;
-		Card* c = cl->head;
-		cl->head = c->next;
+		Card* c = this->head;
+		this->head = c->next;
 		delete c;
+		size--;
 
 	}
-	void removeCard(CardList* cl,int index) {
+	void removeCard(int index) {
 		if (index == 0) {
-			removeFirst(cl);
+			removeFirst();
 			return;
 		}
-		Card* prev = cl->head;
+		Card* prev = this->head;
 		while (index > 1) {
 			prev = prev->next;
 			--index;
@@ -72,24 +94,20 @@ public:
 		Card* c = prev->next;
 		prev->next = c->next;
 		delete c;
+		size--;
 	}
-	//TODO
-	/*
-	void drawNCards(Player* pl, int n) {
-	pl->hand.
-	}*/
+};
+/*
+class Deck {
 
-};
-struct CardList {
-	Card* head;
-};
-struct Card
-{
 public:
-	int value;
-	int suit;
-	Card* next;
+	static CardList* createCardList() {
+		CardList* cl = new CardList;
+		cl->head = NULL;
+		return cl;
+	};
 };
+*/
 class Parser {
 private:
 	
@@ -126,7 +144,7 @@ private:
 public:
 	static string parseCard(Card* c) {
 		//string parsed = 
-		return parseValue(c->suit) + " of " + parseSuit(c->value);
+		return parseValue(c->value) + " of " + parseSuit(c->suit);
 	}
 
 };
@@ -144,11 +162,30 @@ public:
 };
 class GameManager {
 public:
-	Deck deck;
-
-	GameManager() {
+	CardList* deck = new CardList();
+	bool wannaPlay;
+	
+	void react(string s) {
+		if(s == "a")
 
 	}
+	void play()
+	{
+		wannaPlay = true;
+		while (wannaPlay) {
+			react(validateInput());
+		}
+		exit(0);
+	}
+
+
+		
+
+	int checkWinStreak() {
+		//TODO 0 if none 1 if double, 2 if triple, so on...
+		return 0;
+	}
+	
 };
 
 class Player {
@@ -168,6 +205,12 @@ public:
 };
 int main()
 {
-	GameManager* gm = new GameManager();
+	CardList* cl = new CardList();
+	cl->addLast(2, 3);
+	cl->addLast(14, 3);
+	cl->removeCard(1);
+
+	View::printList(cl);
+	//GameManager* gm = new GameManager();
     return 0;
 }

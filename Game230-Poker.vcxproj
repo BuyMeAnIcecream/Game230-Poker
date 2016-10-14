@@ -149,11 +149,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Deck.cpp" />
     <ClCompile Include="Game230-Poker.cpp" />
-    <ClCompile Include="GameManager.cpp" />
-    <ClCompile Include="Parser.cpp" />
-    <ClCompile Include="Player.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
