@@ -8,15 +8,25 @@
 using namespace std; 
 
 
+string strDeck = "deck";
+string strExit = "exit";
+string strSwap = "swap";
+string strNone = "none";
+string strAll = "all";
 
 static string validateInput() {
-	string inp;
+//	string inp = cin.getline();
+	//TODO validation
+	/*
 	for (;;) {
+	inp = console.getline();
 		if (inp == "a" || inp == "b" || inp == "c" || inp == "d" || inp == "e" ||
 			inp == "deck" || inp == "exit" || inp == "swap" || inp == "none" || inp == "deck" || inp == "all") {
 			return inp;
 		}
 	}
+	*/
+	return "nope";
 }
 struct Card
 {
@@ -66,11 +76,30 @@ public:
 		Card* c = this->head;
 		while (index > 0) {
 			c = c->next;
-			--index;
+			--index; 
 		}
 		return c;
 	}
+	
+	
 
+	bool contains(Card* c) {
+		for(int i = 0; i<size; i++)
+		{
+			if (getItem(i)->suit == c->suit &&getItem(i)->value == c->value)
+				return true;
+		}
+		return false;
+	}
+
+	bool contains(int v, int s) {
+		for (int i = 0; i<size; i++)
+		{
+			if (getItem(i)->suit == s &&getItem(i)->value == v)
+				return true;
+		}
+		return false;
+	}
 	//TODO
 	void removeFirst() {
 		if (this->head == NULL)
@@ -163,14 +192,78 @@ public:
 class GameManager {
 public:
 	CardList* deck = new CardList();
+	CardList* hand = new CardList();
+
 	bool wannaPlay;
 	
+	void drawNCards(int n) {
+		for (int i = 0; i < n; i++) {
+			//srand()
+			int random = rand() % max + min;
+		}
+	}
+	
+	//hardcode a bit
+	void populateDeck() {
+		for (int i = 2; i <15 ; i++) {
+			for (int j = 0; j < 4; j++) {
+				if(hand->head != NULL || !hand->contains(i,j))
+					deck->addLast(i, j);
+			}
+		}
+	}
+
+	int checkWinStreak() {
+		if (flush()) {
+			cout<<"";
+			return 5;
+		}
+
+		if (straight()) {
+			cout << "";
+			return 4;
+		}
+
+		if (threeOfAKind()) {
+			cout << "";
+			return 3;
+		}
+		
+		if (twoPair()) {
+			cout << "";
+			return 2;
+		}
+
+		if (pair()) {
+			cout << "";
+			return 1;
+
+		}
+		
+		//TODO 0 if none 1 if double, 2 if triple, so on...
+		return 0;
+	}
 	void react(string s) {
-		if(s == "a")
+		if (s == strSwap) {
+			//TODO	
+		}
+		else if (s == strExit)
+			wannaPlay = false;
+		else if (s == strDeck)
+			View::printList(deck);
+		else if (s == strNone) {
+			//what?
+		}
+		else if (s == strAll) {
+			//	changeAll();
+		}
+		checkWinStreak();
+
 
 	}
 	void play()
 	{
+		//TODO create deck, fill deck
 		wannaPlay = true;
 		while (wannaPlay) {
 			react(validateInput());
@@ -181,20 +274,17 @@ public:
 
 		
 
-	int checkWinStreak() {
-		//TODO 0 if none 1 if double, 2 if triple, so on...
-		return 0;
-	}
+	
 	
 };
-
+/*
 class Player {
 public:
 	int money;
 	CardList* hand;
 
 	Player() {
-		hand = Deck::createCardList();
+//		hand = Deck::createCardList();
 
 	}
 
@@ -203,14 +293,18 @@ public:
 	}
 
 };
+*/
 int main()
 {
 	CardList* cl = new CardList();
-	cl->addLast(2, 3);
-	cl->addLast(14, 3);
-	cl->removeCard(1);
+	//cl->addLast(2, 3);
+	//cl->addLast(14, 3);
+	//cl->removeCard(1);
 
-	View::printList(cl);
-	//GameManager* gm = new GameManager();
+
+	
+	GameManager* gm = new GameManager();
+	gm->populateDeck();
+	View::printList(gm->deck);
     return 0;
 }
