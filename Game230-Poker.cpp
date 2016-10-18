@@ -37,15 +37,18 @@ bool isMagicChars(string inp) { //danger, danger i feel it's not gonna work
 char validateCharInput() {
 	string inp;
 	for (;;) {
-		if (cin >> inp &&inp.size() == 1 && isMagicChars(inp))
+		if (cin >> inp &&inp.size() == 1 && isMagicChars(inp)) {
 			//	if (isMagicChars(inp))
+			
 			break;
+		}
 		else {
 			cin.clear();
 			cin.ignore(numeric_limits<streamsize>::max(), '\n');
 		}
+		//return inp[0];
 	}
-
+	
 	return (char)inp[0];
 }
 static string validateStringInput() {
@@ -150,8 +153,6 @@ public:
 		}
 		return c;
 	}
-	
-	
 
 	bool contains(Card* c) {
 		for(int i = 0; i<size; i++)
@@ -194,6 +195,23 @@ public:
 		prev->next = c->next;
 		//delete c;
 		size--;
+	}
+
+	void removeCard(Card* c) {                                       //something is redundant here, but I've spent 2 hours on this function alone, it's late and I have no time to figure out how it works at all..
+		if (head->suit == c->suit && head->value == c->value) {
+			this->head = this->head->next;
+			return;
+		}
+		Card* prev = this->head;
+		while (true) {
+			Card* cur = prev->next;
+			
+			if (cur->suit == c->suit && cur->value == c->value) {
+				prev->next = cur->next;
+				return;
+			}
+			prev = prev->next;
+		}
 	}
 };
 class Player {
@@ -253,7 +271,12 @@ public:
 	static void printList(CardList* cl) {
 		Card* c = cl->head;
 //		cout<< Parser::parseCard(c)<<endl;
+		int index = 0;
 		while (c != NULL) {
+			if (cl->size == 5) {
+				cout << magicChars[index] << ": ";
+				index++;
+			}
 			cout<< Parser::parseCard(c) << endl;
 			c = c->next;
 		}
@@ -263,6 +286,7 @@ public:
 		cout << endl << "Money: " << p->money << endl;
 		cout << "Hand:" << endl;
 		printList(p->hand);
+		
 	}
 };
 
@@ -274,13 +298,13 @@ public:
 	CardList* discard;// = new CardList();
 	bool wannaPlay;
 	Player* player;
-//	int playersMoney;
+	//	int playersMoney;
 	GameManager() {
-//		playersMoney = 10;
+		//		playersMoney = 10;
 		player = new Player();
 		deck = new CardList();
 		populateDeck();
-//		hand = new CardList();
+		//		hand = new CardList();
 		discard = new CardList();
 		wannaPlay = true;
 	}
@@ -288,28 +312,28 @@ public:
 		for (int i = 0; i < n; i++) {
 			//srand()
 			int random = rand() % deck->size;
-			
+
 			//hand->addLast(deck->getItem(i));
 			Card* c = deck->getItem(random);
 			deck->removeCard(random);
 			player->hand->addLast(c);
-			
+
 		}
 	}
-	
+
 	//hardcode a bit
 	void populateDeck() {
-		for (int i = 2; i <15 ; i++) {
+		for (int i = 2; i < 15; i++) {
 			for (int j = 0; j < 4; j++) {
 				//if(hand->head != NULL || !hand->contains(i,j))
-					deck->addLast(i, j);
+				deck->addLast(i, j);
 			}
 		}
 	}
 	bool flush() {
 		return false;
 	}
-		
+
 	bool straight() {
 		return false;
 	}
@@ -327,7 +351,7 @@ public:
 	}
 	int checkWinStreak() {
 		if (flush()) {
-			cout<<"";
+			cout << "";
 			return 5;
 		}
 
@@ -340,7 +364,7 @@ public:
 			cout << "";
 			return 3;
 		}
-		
+
 		if (twoPairs()) {
 			cout << "";
 			return 2;
@@ -351,12 +375,14 @@ public:
 			return 1;
 
 		}
-		
+
 		//TODO 0 if none 1 if double, 2 if triple, so on...
 		return 0;
 	}
-	Card* selectCardByChar() {
-		char ch = validateCharInput();
+
+
+	Card* selectCardByChar(char ch) {
+		//char ch = validateCharInput();
 		switch (ch)
 		{
 		case 'a':
@@ -373,82 +399,101 @@ public:
 			break;
 		}
 	}
+	void changeCards(string s) {
+		/*
+		for each (char ch in s)
+		{
+			transferCard(selectCardByChar(ch), di, player->hand);
+			transferCard()
+		}
+		*/
+		for each (char ch in magicChars) {
+			if (!s.find(ch)) {
+				transferCard(selectCardByChar(ch),  player->hand, discard);
+				drawNCards(player->hand->size - s.size());
+			}
+		}
+	}
 
 	void swapCard() {
-		for(;;){
-		cout << "Select a card to swap"<<endl;
-		char ch = validateCharInput();
-		
-		Card* selectedCard = selectCardByChar();
-		Card* tempC = new Card;
-		cout << "Type in value (2 - 15)" << endl;
-		//int inp = validateIntInput(2, 15);
-		tempC->value = validateIntInput(2, 15);
-		cout << "Type in suit (0 - 4)" << endl;
-		tempC->suit = validateIntInput(0, 4);
-		
-		if (deck->contains(tempC)) {
-			//todo getItem() bla bla bla 
-			deck->removeCard();
+		for (;;) {
+			cout << "Select a card to swap" << endl;
+			
+			char ch = validateCharInput();
+
+			Card* selectedCard = selectCardByChar(ch);
+			Card* tempC = new Card;
+			cout << "Type in value (2 - 14)" << endl;
+			//int inp = validateIntInput(2, 15);
+			tempC->value = validateIntInput(1, 15);
+			cout << "Type in suit (0 - 3)" << endl;
+			tempC->suit = validateIntInput(-1, 4);
+			
+			if (transferCard(tempC, deck, player->hand) && transferCard(selectedCard, player->hand, discard) )
+				return;
+				
+			else {
+				cout << "wrong"<<endl;
+			}
+			
 		}
-		
-			delete tempC;
-		
-		
+		}
+	bool transferCard(Card* c, CardList* from, CardList* to) { //from  to
+		if (from->contains(c)) {
+			from->removeCard(c);
+			to->addLast(c);
+			return true;
+		}
+		return false;
 	}
 	void react(string s) {
-		if (s == strSwap) {
-			swapCard();
-		}
-		else if (s == strExit)
-			wannaPlay = false;
-		else if (s == strDeck) {
-			cout << endl << "The deck is" << endl;
-			View::printList(deck);
+			if (s == strSwap) {
+				swapCard();
+			}
+			else if (s == strExit)
+				wannaPlay = false;
+			else if (s == strDeck) {
+				cout << endl << "The deck is" << endl;
+				View::printList(deck);
+
+			}
+			else if (s == strNone) {
+				//what?
+			}
+			else if (s == strAll) {
+				//	changeAll();
+			}
 			
-		}
-		else if (s == strNone) {
-			//what?
-		}
-		else if (s == strAll) {
-			//	changeAll();
-		}
-		checkWinStreak();
+			else 
+				changeCards(s);
+					
 
-
-	}
+					
+				
+			
+			checkWinStreak();
+		}
 	void play()
-	{
-		//TODO create deck, fill deck
-		drawNCards(5);
-		while (wannaPlay) {
-			View::printPlayerInfo(this->player);
-			
-			react(validateStringInput());
+		{
+			//TODO create deck, fill deck
+			drawNCards(5);
+			while (wannaPlay) {
+
+				View::printPlayerInfo(this->player);
+
+				react(validateStringInput());
+
+			}
+			exit(0);
 		}
-		exit(0);
-	}
-
-
-		
-
-	
-	
 };
 
-int main()
-{
+	int main()
+	{
 
-	GameManager* gm = new GameManager();
-	/*
-	
-	gm->populateDeck();
-	View::printList(gm->deck);
-	gm->drawNCards(5);
-	cout << endl << "____________________________" << endl;
-	View::printList(gm->hand);
-	*/
-	gm->play();
-	string s = validateStringInput();
-    return 0;
-}
+		GameManager* gm = new GameManager();
+		
+		gm->play();
+		string s = validateStringInput();
+		return 0;
+	}
