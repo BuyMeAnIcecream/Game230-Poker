@@ -98,8 +98,12 @@ public:
 		size = 0;
 	}
 	~CardList() {
+		deleteList();
+		size = 0;
+		head = NULL;
 		//TODO
 	}
+
 	void addFirst(int v, int s) {
 		Card* c = new Card;
 		c->value = v;
@@ -143,7 +147,49 @@ public:
 		last->next = c;
 		size++;
 	}
+
+	void orderCards() {
+		int sizee = this->size;
+		int i = 0;
+		Card* lastSwapped = NULL;
+		while (sizee--)
+		{
+			Card
+				*current = head,
+				*prev = NULL, // We are at the beginnig, so there is no previous node.
+				*currentSwapped = NULL;
+
+			while (current->next != lastSwapped) // We have at least one node (size > 0) so `current` itself is not NULL.
+			{
+				Card *after = current->next;
+				if ((current->value) > (after->value))
+				{
+					//swap the items
+					current->next = after->next;
+					after->next = current;
+					if (prev == NULL) // we are at the beginning
+						head = after;
+					else
+						prev->next = after;
+
+					prev = after;
+					currentSwapped = current;
+				}
+				else
+				{
+					prev = current;
+					current = current->next;
+				}
+			}
+
+			if (currentSwapped == NULL)
+				break; // No swapping occured. The items are sorted.
+			else
+				lastSwapped = currentSwapped;
+		}
+		}
 	
+
 
 	Card* getItem(int index) {
 		Card* c = this->head;
@@ -196,10 +242,39 @@ public:
 		//delete c;
 		size--;
 	}
+	/*
+	void deleteFirst() {
+		if (head == NULL)
+			return;
+		Card* c = head;
+		head = c->next;
+		delete c;
+	}
+	*/
 
+	void deleteList() {
+		/*
+		if (this->head == NULL)
+			return;
+
+		Card* c = this->head;
+		this->head = c->next;
+		delete c;
+		Card* prev = 
+		*/
+		Card* c = head;
+		while (c != NULL) {
+			Card* c2 = c;
+			c = c->next;
+			delete c;
+		}
+		delete this;
+	}
+	
 	void removeCard(Card* c) {                                       //something is redundant here, but I've spent 2 hours on this function alone, it's late and I have no time to figure out how it works at all..
 		if (head->suit == c->suit && head->value == c->value) {
 			this->head = this->head->next;
+			size--;
 			return;
 		}
 		Card* prev = this->head;
@@ -208,10 +283,12 @@ public:
 			
 			if (cur->suit == c->suit && cur->value == c->value) {
 				prev->next = cur->next;
+				size--;
 				return;
 			}
 			prev = prev->next;
 		}
+		
 	}
 };
 class Player {
@@ -274,6 +351,7 @@ public:
 		int index = 0;
 		while (c != NULL) {
 			if (cl->size == 5) {
+				
 				cout << magicChars[index] << ": ";
 				index++;
 			}
@@ -309,15 +387,14 @@ public:
 		wannaPlay = true;
 	}
 	void drawNCards(int n) {
+		if (n == 0)
+			return;
 		for (int i = 0; i < n; i++) {
-			//srand()
+			                                                                                                            //TODO srand()
 			int random = rand() % deck->size;
-
-			//hand->addLast(deck->getItem(i));
 			Card* c = deck->getItem(random);
-			deck->removeCard(random);
-			player->hand->addLast(c);
 
+			transferCard(c, deck, player->hand);
 		}
 	}
 
@@ -331,6 +408,8 @@ public:
 		}
 	}
 	bool flush() {
+		for (int i = 0; i < player->hand->size; i++) {}
+
 		return false;
 	}
 
@@ -400,18 +479,15 @@ public:
 		}
 	}
 	void changeCards(string s) {
-		/*
-		for each (char ch in s)
-		{
-			transferCard(selectCardByChar(ch), di, player->hand);
-			transferCard()
-		}
-		*/
-		for each (char ch in magicChars) {
-			if (!s.find(ch)) {
-				transferCard(selectCardByChar(ch),  player->hand, discard);
-				drawNCards(player->hand->size - s.size());
+		
+		//for each (char ch in magicChars) {
+		for(int i = 4; i >-1; i--){
+		if (s.find(magicChars[i])==string::npos) {
+			//cout << magicChars[i];
+				transferCard(selectCardByChar(magicChars[i]),  player->hand, discard);
+				drawNCards(1);
 			}
+			//drawNCards(player->hand->size - s.size());
 		}
 	}
 
@@ -435,9 +511,8 @@ public:
 			else {
 				cout << "wrong"<<endl;
 			}
-			
 		}
-		}
+	}
 	bool transferCard(Card* c, CardList* from, CardList* to) { //from  to
 		if (from->contains(c)) {
 			from->removeCard(c);
@@ -449,16 +524,18 @@ public:
 	void react(string s) {
 			if (s == strSwap) {
 				swapCard();
+			//	player->hand->orderCards();
 			}
 			else if (s == strExit)
 				wannaPlay = false;
 			else if (s == strDeck) {
 				cout << endl << "The deck is" << endl;
+				deck->orderCards();
 				View::printList(deck);
 
 			}
 			else if (s == strNone) {
-				//what?
+				changeCards("abcde");
 			}
 			else if (s == strAll) {
 				//	changeAll();
@@ -466,17 +543,14 @@ public:
 			
 			else 
 				changeCards(s);
-					
-
-					
-				
-			
+			player->hand->orderCards();
 			checkWinStreak();
 		}
 	void play()
 		{
 			//TODO create deck, fill deck
 			drawNCards(5);
+			player->hand->orderCards();
 			while (wannaPlay) {
 
 				View::printPlayerInfo(this->player);
