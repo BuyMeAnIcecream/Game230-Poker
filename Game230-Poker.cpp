@@ -162,7 +162,8 @@ public:
 			while (current->next != lastSwapped) // We have at least one node (size > 0) so `current` itself is not NULL.
 			{
 				Card *after = current->next;
-				if ((current->value) > (after->value))
+				if (current->value > after->value|| current->value ==after->value && current->suit > after->suit)// || current->suit > after->suit)
+				
 				{
 					//swap the items
 					current->next = after->next;
@@ -328,10 +329,10 @@ private:
 
 	static string parseSuit(int value) {
 		switch (value) {
-		case 0: return "Spades";
-		case 1: return "Hearts";
-		case 2: return "Clubs";
-		case 3: return "Diamonds";
+		case 0: return "Clubs";
+		case 1: return "Diamonds";
+		case 2: return "Hearts";
+		case 3: return "Spades";
 		default: return "you fed me some bullshit";
 		}
 	};
@@ -407,50 +408,152 @@ public:
 			}
 		}
 	}
-	bool flush() {
-		for (int i = 0; i < player->hand->size; i++) {}
+	
 
+	bool flush() {
+		Card* prev = player->hand->head;
+		Card* cur = prev->next;
+		int streak = 0;
+		while (cur != NULL) {
+			if (prev->suit == cur->suit)
+				streak++;
+			if (streak == 4)
+				return true;
+			prev = cur;
+			cur = cur->next;
+		}
 		return false;
 	}
-
+	bool straightFlush() {
+		if (flush() && straight())
+			return true;
+		return false;
+	}
 	bool straight() {
+		Card* prev = player->hand->head;
+		Card* cur = prev->next;
+		int streak = 0;
+		while (cur != NULL) {
+			if ( cur->value - prev->value == 1)
+				streak++;
+			if (streak == 4)
+				return true;
+			prev = cur;
+			cur = cur->next;
+		}
 		return false;
 	}
 	bool threeOfAKind() {
+		Card* cur = player->hand->head;
+		Card* following = cur->next;
+		while (cur != NULL &&cur->next != NULL&& cur->next->next!=NULL ) {
+			if (cur->next->value == cur->value && cur->value== cur->next->next->value)
+				return true;
+			cur = cur->next;
+			
+		}
 		return false;
 	}
-	bool street() {
+	bool fourOfAKind() {
+		Card* cur = player->hand->head;
+		//Card* following = cur->next;
+		while (cur != NULL &&cur->next != NULL&& cur->next->next != NULL && cur->next->next->next != NULL) {
+			if (cur->next->value == cur->value && cur->value == cur->next->next->value &&cur->next->next->value == cur->next->next->next->value)
+				return true;
+			cur = cur->next;
+			//following = cur->next;
+
+		}
 		return false;
+	}
+	bool fullHouse() {
+		
+		if (player->hand->getItem(0)->value == player->hand->getItem(1)->value && player->hand->getItem(2)->value == player->hand->getItem(3)->value && player->hand->getItem(3)->value == player->hand->getItem(4)->value)
+			return true;
+		if (player->hand->getItem(0)->value == player->hand->getItem(1)->value && player->hand->getItem(1)->value == player->hand->getItem(2)->value && player->hand->getItem(3)->value == player->hand->getItem(4)->value)
+			return true;
+		return false;
+	}
+
+	bool royalFlush() {
+		return (player->hand->head->value == 10 && flush());
+			
 	}
 	bool twoPairs() {
+		Card* cur = player->hand->head;
+		Card* following = cur->next;
+		
+		int streak = 0;
+		while (cur != NULL && cur->next!=NULL) {
+			
+			if (cur->next->value == cur->value) {
+				
+				streak++;
+				if (streak == 2)
+					return true;
+				cur = cur->next->next;
+				continue;
+			}
+			
+		
+			cur = cur->next;
+		}
 		return false;
 	}
 	bool pair() {
+		Card* cur =  player->hand->head;
+		Card* following = cur->next;
+		while (cur != NULL && cur->next!=NULL) {
+			if (cur->next->value == cur->value && cur->value > 10){
+				return true;
+				}
+			cur = cur->next;
+		//	while () {}
+		//	cur = cur->next;
+		}
+			
 		return false;
 	}
 	int checkWinStreak() {
+		if (royalFlush()) {
+			cout << "royal";
+			return 800;
+		}
+
+		if (straightFlush()) {
+			cout << "straight flush" << endl;
+			return 50;
+		}
+		if (fourOfAKind()) {
+			cout << "four of a kind" << endl;
+			return 25;
+		}
+		if (fullHouse()) {
+			cout << "full house" << endl;
+			return 9;
+		}
 		if (flush()) {
-			cout << "";
-			return 5;
+			cout << "flush";
+			return 6;
 		}
 
 		if (straight()) {
-			cout << "";
+			cout << "straight";
 			return 4;
 		}
 
 		if (threeOfAKind()) {
-			cout << "";
+			cout << "three of a kind";
 			return 3;
 		}
 
 		if (twoPairs()) {
-			cout << "";
+			cout << "two pairs";
 			return 2;
 		}
 
 		if (pair()) {
-			cout << "";
+			cout << "pair";
 			return 1;
 
 		}
@@ -544,17 +647,17 @@ public:
 			else 
 				changeCards(s);
 			player->hand->orderCards();
-			checkWinStreak();
+			player->money+=checkWinStreak();
 		}
 	void play()
 		{
 			//TODO create deck, fill deck
 			drawNCards(5);
 			player->hand->orderCards();
-			while (wannaPlay) {
-
+			while (wannaPlay || player->money < 1) {
+				player->money--;
 				View::printPlayerInfo(this->player);
-
+				//checkWinStreak();
 				react(validateStringInput());
 
 			}
