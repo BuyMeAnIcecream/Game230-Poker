@@ -243,26 +243,9 @@ public:
 		//delete c;
 		size--;
 	}
-	/*
-	void deleteFirst() {
-		if (head == NULL)
-			return;
-		Card* c = head;
-		head = c->next;
-		delete c;
-	}
-	*/
 
 	void deleteList() {
-		/*
-		if (this->head == NULL)
-			return;
 
-		Card* c = this->head;
-		this->head = c->next;
-		delete c;
-		Card* prev = 
-		*/
 		Card* c = head;
 		while (c != NULL) {
 			Card* c2 = c;
@@ -373,7 +356,6 @@ public:
 class GameManager {
 public:
 	CardList* deck;// = new CardList();
-//	CardList* hand;// = new CardList();
 	CardList* discard;// = new CardList();
 	bool wannaPlay;
 	Player* player;
@@ -398,12 +380,11 @@ public:
 			transferCard(c, deck, player->hand);
 		}
 	}
-
+	
 	//hardcode a bit
 	void populateDeck() {
 		for (int i = 2; i < 15; i++) {
 			for (int j = 0; j < 4; j++) {
-				//if(hand->head != NULL || !hand->contains(i,j))
 				deck->addLast(i, j);
 			}
 		}
@@ -625,6 +606,31 @@ public:
 		return false;
 	}
 	void react(string s) {
+		if (s == strSwap) {
+			swapCard();
+		}
+		else if (s == strExit)
+			wannaPlay = false;
+		else if (s == strDeck) {
+			cout << endl << "The deck: " << endl;
+			deck->orderCards();
+			View::printList(deck);
+
+		}
+		else if (s == strNone) {
+			changeCards("abcde");
+		}
+		else if (s == strAll) {
+			//	keepAll();
+		}
+
+		else
+			changeCards(s);
+		player->hand->orderCards();
+		
+	}
+	/*
+	void react(string s) {
 			if (s == strSwap) {
 				swapCard();
 			//	player->hand->orderCards();
@@ -651,7 +657,6 @@ public:
 		}
 	void play()
 		{
-			//TODO create deck, fill deck
 			drawNCards(5);
 			player->hand->orderCards();
 			while (wannaPlay || player->money < 1) {
@@ -662,7 +667,27 @@ public:
 
 			}
 			exit(0);
+		}*/
+	void round() {
+		drawNCards(5);
+		View::printPlayerInfo(this->player);
+		
+		react(validateStringInput());
+		//discard
+		Card* c = player->hand->head;
+		while (c != NULL) {
+			transferCard(c, player->hand, discard);
+			c=c->next;
 		}
+	}
+	void play() {
+		//wannaPlay = true;
+		while (wannaPlay&&player->money >1) {
+			player->money--;
+			round();
+			player->money += checkWinStreak();
+		}
+	}
 };
 
 	int main()
