@@ -73,6 +73,7 @@ static string validateStringInput() {
 		else {
 			cin.clear();
 			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+			cout << "what was that?" << endl;
 		}
 	}
 	
@@ -206,6 +207,16 @@ public:
 			--index; 
 		}
 		return c;
+	}
+
+	Card* getItem(int v, int s) {
+		Card* c = this->head;
+		while (c != NULL) {
+			if (c->value == v && s == c->suit)
+				return c;
+			c = c->next;
+		}
+		return NULL;
 	}
 
 
@@ -588,26 +599,35 @@ public:
 	}
 
 	void swapCard() {
+		
 		for (;;) {
 			cout << "Select a card to swap" << endl;
 
 			char ch = validateCharInput();
 
 			Card* selectedCard = selectCardByChar(ch);
-			Card* tempC = new Card;
+			
 			cout << "Type in value (2 - 14)" << endl;
 			//int inp = validateIntInput(2, 15);
-			tempC->value = validateIntInput(1, 15);
+			int val = validateIntInput(1, 15);
+			//tempC->value = 
 			cout << "Type in suit (0 - 3)" << endl;
-			tempC->suit = validateIntInput(-1, 4);
-
-			if (transferCard(tempC, deck, player->hand) && transferCard(selectedCard, player->hand, discard)) {
+			//tempC->suit = 
+			
+			int suit = validateIntInput(-1, 4);
+			Card*c = deck->getItem(val, suit);
+			if (c == NULL) {
+				cout << "wrong" << endl;
+				continue;
+			}
+			if (transferCard(deck->getItem(val,suit), deck, player->hand) && transferCard(selectedCard, player->hand, discard)) {
 				player->hand->orderCards();
-
+				//delete tempC;
 				return;
 		}
 				
 			else {
+				//delete tempC;
 				cout << "wrong"<<endl;
 			}
 		}
