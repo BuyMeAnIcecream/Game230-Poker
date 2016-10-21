@@ -1,11 +1,23 @@
 // Game230-Poker.cpp : Defines the entry point for the console application.
 //
+#define _CRTDBG_MAP_ALLOC
+#define _CRTDBG_MAP_ALLOC_NEW
+#include <cstdlib>
+#include <crtdbg.h>
+#ifdef _DEBUG
+#ifndef DBG_NEW
+#define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )
+#define new DBG_NEW
+#endif
+#endif
+
 #include "GameManager.cpp"
 #include "stdafx.h"
 #include <string>
 #include <stddef.h>
 #include <iostream>
 #include <array>
+#include <time.h> 
 using namespace std; 
 
 
@@ -163,7 +175,6 @@ public:
 			{
 				Card *after = current->next;
 				if (current->value > after->value|| current->value ==after->value && current->suit > after->suit)// || current->suit > after->suit)
-				
 				{
 					//swap the items
 					current->next = after->next;
@@ -182,16 +193,12 @@ public:
 					current = current->next;
 				}
 			}
-
 			if (currentSwapped == NULL)
 				break; // No swapping occured. The items are sorted.
 			else
 				lastSwapped = currentSwapped;
 		}
 		}
-	
-
-
 	Card* getItem(int index) {
 		Card* c = this->head;
 		while (index > 0) {
@@ -200,6 +207,7 @@ public:
 		}
 		return c;
 	}
+
 
 	bool contains(Card* c) {
 		for(int i = 0; i<size; i++)
@@ -250,25 +258,26 @@ public:
 		while (c != NULL) {
 			Card* c2 = c;
 			c = c->next;
-			delete c;
+			delete c2;
 		}
-		delete this;
+		//delete this;
+		c = NULL;
+		head = NULL;
 	}
-	
-	void removeCard(Card* c) {                                       //something is redundant here, but I've spent 2 hours on this function alone, it's late and I have no time to figure out how it works at all..
+	Card* removeCard(Card* c) {                                       //something is redundant here, but I've spent 2 hours on this function alone, it's late and I have no time to figure out how it works at all..
 		if (head->suit == c->suit && head->value == c->value) {
 			this->head = this->head->next;
 			size--;
-			return;
+			return head;
 		}
 		Card* prev = this->head;
-		while (true) {
+		while (prev!=NULL) {
 			Card* cur = prev->next;
 			
 			if (cur->suit == c->suit && cur->value == c->value) {
 				prev->next = cur->next;
 				size--;
-				return;
+				return cur;
 			}
 			prev = prev->next;
 		}
@@ -284,12 +293,13 @@ public:
 		money = 10;
 		hand = new CardList;
 	}
+	~Player() {
+		delete hand;
+	}
 };
 
 class Parser {
 private:
-	
-
 	static string parseValue(int value) {
 		switch (value) {
 		case 2: return "2";
@@ -308,8 +318,6 @@ private:
 		default: return "you fed me some bullshit";
 		}
 	}
-
-
 	static string parseSuit(int value) {
 		switch (value) {
 		case 0: return "Clubs";
@@ -326,7 +334,6 @@ public:
 	}
 
 };
-
 class View {
 public:
 	static void printList(CardList* cl) {
@@ -343,7 +350,6 @@ public:
 			c = c->next;
 		}
 	}
-
 	static void printPlayerInfo(Player* p) {
 		cout << endl << "Money: " << p->money << endl;
 		cout << "Hand:" << endl;
@@ -351,8 +357,6 @@ public:
 		
 	}
 };
-
-
 class GameManager {
 public:
 	CardList* deck;// = new CardList();
@@ -369,11 +373,18 @@ public:
 		discard = new CardList();
 		wannaPlay = true;
 	}
+	~GameManager() {
+		delete player;
+		delete deck;
+		delete discard;
+	}
 	void drawNCards(int n) {
 		if (n == 0)
 			return;
 		for (int i = 0; i < n; i++) {
-			                                                                                                            //TODO srand()
+			if (deck->size < 1)
+				refillTheDeck();
+				 
 			int random = rand() % deck->size;
 			Card* c = deck->getItem(random);
 
@@ -390,6 +401,13 @@ public:
 		}
 	}
 	
+	void refillTheDeck() {
+		CardList* temp; 
+		temp = deck;
+		deck = discard;
+		discard = temp;
+		deck->orderCards();
+	}
 
 	bool flush() {
 		Card* prev = player->hand->head;
@@ -497,49 +515,42 @@ public:
 	}
 	int checkWinStreak() {
 		if (royalFlush()) {
-			cout << "royal";
+			cout << "congrats, you won 800 with royal flush" << endl;
 			return 800;
 		}
-
 		if (straightFlush()) {
-			cout << "straight flush" << endl;
+			cout << "congrats, you won 50 with straight flush" << endl;
 			return 50;
 		}
 		if (fourOfAKind()) {
-			cout << "four of a kind" << endl;
+			cout << "congrats, you won 25 with four of a kind" << endl;
 			return 25;
 		}
 		if (fullHouse()) {
-			cout << "full house" << endl;
+			cout << "congrats, you won 9 with full house" << endl;
 			return 9;
 		}
 		if (flush()) {
-			cout << "flush";
+			cout << "congrats, you won 6 withflush" << endl;
 			return 6;
 		}
-
 		if (straight()) {
-			cout << "straight";
+			cout << "congrats, you won 4 with straight" << endl;
 			return 4;
 		}
-
 		if (threeOfAKind()) {
-			cout << "three of a kind";
+			cout << "congrats, you won 3 with three of a kind" << endl;
 			return 3;
 		}
-
 		if (twoPairs()) {
-			cout << "two pairs";
+			cout << "congrats, you won 2 with two pairs" << endl;
 			return 2;
 		}
-
 		if (pair()) {
-			cout << "pair";
+			cout << "congrats, you won 1 with pair" << endl;
 			return 1;
-
 		}
-
-		//TODO 0 if none 1 if double, 2 if triple, so on...
+		cout << "you didn't win , sry"<<endl; 
 		return 0;
 	}
 
@@ -573,12 +584,13 @@ public:
 			}
 			//drawNCards(player->hand->size - s.size());
 		}
+		player->hand->orderCards();
 	}
 
 	void swapCard() {
 		for (;;) {
 			cout << "Select a card to swap" << endl;
-			
+
 			char ch = validateCharInput();
 
 			Card* selectedCard = selectCardByChar(ch);
@@ -588,114 +600,121 @@ public:
 			tempC->value = validateIntInput(1, 15);
 			cout << "Type in suit (0 - 3)" << endl;
 			tempC->suit = validateIntInput(-1, 4);
-			
-			if (transferCard(tempC, deck, player->hand) && transferCard(selectedCard, player->hand, discard) )
+
+			if (transferCard(tempC, deck, player->hand) && transferCard(selectedCard, player->hand, discard)) {
+				player->hand->orderCards();
+
 				return;
+		}
 				
 			else {
 				cout << "wrong"<<endl;
 			}
 		}
+		
 	}
 	bool transferCard(Card* c, CardList* from, CardList* to) { //from  to
 		if (from->contains(c)) {
 			from->removeCard(c);
+			//from->removeCard(from->getItem(c));
 			to->addLast(c);
 			return true;
 		}
 		return false;
 	}
+	
 	void react(string s) {
+		//View::printPlayerInfo(player);
 		if (s == strSwap) {
 			swapCard();
+			View::printList(player->hand);
 		}
-		else if (s == strExit)
+		else if (s == strExit) {
 			wannaPlay = false;
-		else if (s == strDeck) {
-			cout << endl << "The deck: " << endl;
-			deck->orderCards();
-			View::printList(deck);
-
+			return;
 		}
+	//	else if (s == strDeck) {
+			
+	//		react(validateStringInput());
+	//	}
 		else if (s == strNone) {
-			changeCards("abcde");
+			changeCards("nlkhg");
+			
+			View::printList(player->hand);
 		}
 		else if (s == strAll) {
-			//	keepAll();
+			View::printList(player->hand);
+			return;
 		}
-
-		else
+		else {
 			changeCards(s);
+			View::printList(player->hand);
+		}
 		player->hand->orderCards();
 		
 	}
-	/*
-	void react(string s) {
-			if (s == strSwap) {
-				swapCard();
-			//	player->hand->orderCards();
-			}
-			else if (s == strExit)
-				wannaPlay = false;
-			else if (s == strDeck) {
-				cout << endl << "The deck is" << endl;
-				deck->orderCards();
-				View::printList(deck);
-
-			}
-			else if (s == strNone) {
-				changeCards("abcde");
-			}
-			else if (s == strAll) {
-				//	changeAll();
-			}
-			
-			else 
-				changeCards(s);
-			player->hand->orderCards();
-			player->money+=checkWinStreak();
-		}
-	void play()
-		{
-			drawNCards(5);
-			player->hand->orderCards();
-			while (wannaPlay || player->money < 1) {
-				player->money--;
-				View::printPlayerInfo(this->player);
-				//checkWinStreak();
-				react(validateStringInput());
-
-			}
-			exit(0);
-		}*/
-	void round() {
-		drawNCards(5);
-		View::printPlayerInfo(this->player);
-		
-		react(validateStringInput());
-		//discard
-		Card* c = player->hand->head;
-		while (c != NULL) {
+	void clearHand() {
+		Card*c = player->hand->head;
+		Card* c2;
+		while (c!=NULL) {
+			c2 = c->next;
 			transferCard(c, player->hand, discard);
-			c=c->next;
+			c = c2;
 		}
+	}
+	void round() {
+		
+		View::printPlayerInfo(this->player);
+		string s = validateStringInput();
+		if (s == "deck" ) {
+			cout << endl << "The deck: " << endl;
+			View::printList(deck);
+			round();
+		}
+		else if (s == "swap") {
+			swapCard();
+			round();
+		}
+		else 
+			react(s);
+		//react(validateStringInput());
+	//	if (s != "all" || s != "none" || s != "swap" || s != "exit")
+	//		react(validateStringInput());
 	}
 	void play() {
-		//wannaPlay = true;
+		cout << "you had  " << player->money << " to waste. " << endl;
 		while (wannaPlay&&player->money >1) {
 			player->money--;
+			drawNCards(5);
+			player->hand->orderCards();
 			round();
+			if (!wannaPlay)return;
 			player->money += checkWinStreak();
+			cout << "any button for next round" << endl;
+			
+			string s;
+			getline(cin, s);
+			if (s == "exit") { wannaPlay = false; continue; }
+			if (s == "deck") {
+				cout << endl << "The deck: " << endl;
+				View::printList(deck);
+			}
+			getline(cin, s);
+			if (s == "exit")wannaPlay = false;																										//why doesn't it work if used once..?
+			if (s == "deck")View::printList(deck);
+			clearHand();
 		}
 	}
-};
 
+};
 	int main()
 	{
-
+		_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF |
+			_CRTDBG_LEAK_CHECK_DF);
 		GameManager* gm = new GameManager();
 		
+		srand(time(NULL));
 		gm->play();
-		string s = validateStringInput();
+		delete gm;
 		return 0;
 	}
