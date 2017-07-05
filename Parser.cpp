@@ -1,9 +1,10 @@
 #include <string>
+#include "Parser.h"
 using namespace std;
 
-class Parser {
-public:
-	static string parseValue(int value) {
+
+
+	string Parser::parseValue(int value) {
 		switch (value) {
 		case 2: return "2";
 		case 3: return "3";
@@ -23,7 +24,7 @@ public:
 	}
 
 
-	static string parseSuit(int value) {
+	string Parser::parseSuit(int value) {
 		switch (value) {
 		case 0: return "Spades";
 		case 1: return "Hearts";
@@ -31,5 +32,10 @@ public:
 		case 3: return "Diamonds";
 		default: return "you fed me some bullshit";
 		}
+
+
 	}
-};
+
+	string Parser::parseCard(Card* c) {
+		return parseValue(c->value) + " of " + parseSuit(c->suit);
+	}
